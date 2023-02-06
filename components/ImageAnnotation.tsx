@@ -120,9 +120,12 @@ const useDebounce = (callback: (...args: any) => void, delay: number) => {
 };
 
 const getShapeByPoint = (shapes: Shape[], point: Point) => {
-  console.log(point);
   for (let i = 0; i < shapes.length; i++) {
     for (let j = 0; i < shapes[i].points.length; j++) {
+      if (!shapes[i].points[j]) {
+        continue;
+      }
+
       if (shapes[i].points[j].x === point.x && shapes[i].points[j].y === point.y) {
         return i;
       }
@@ -171,6 +174,8 @@ export const ImageAnnotation = (props: Props) => {
                 })),
               };
 
+              console.log(currentShape);
+
               currentShape.points = calculateSquarePoints(currentShape.points[0], currentPoint);
 
               setShapes(shapes);
@@ -192,10 +197,10 @@ export const ImageAnnotation = (props: Props) => {
                 // Handle point highlighting logic
                 if (pointDistances[minIndex] < 25) {
                   setSelectedPoint(flatPoints[minIndex]);
-                  debouncePointMouseLogging(minIndex);
+                  //debouncePointMouseLogging(minIndex);
                 } else {
                   setSelectedPoint(undefined);
-                  clearDebouncePointMouseLogging();
+                  //clearDebouncePointMouseLogging();
                 }
 
                 // Handle line highlighting logic
@@ -219,10 +224,10 @@ export const ImageAnnotation = (props: Props) => {
 
                   if (lineDistances[minLineIndex] < 15) {
                     setSelectedLine(lines[minLineIndex]);
-                    debounceLineMouseLogging(minIndex, secondMinIndex);
+                    //debounceLineMouseLogging(minIndex, secondMinIndex);
                   } else {
                     setSelectedLine(undefined);
-                    clearDebounceLineMouseLogging();
+                    //clearDebounceLineMouseLogging();
                   }
                 }
               }
@@ -231,12 +236,10 @@ export const ImageAnnotation = (props: Props) => {
           onMouseDown={(event) => {
             const currentPoint: Point = event.target.getStage().getPointerPosition();
 
-            if (enableDrawing && !mouseInsideShape) {
+            if (enableDrawing && !isDrawing && !mouseInsideShape) {
               setActiveShape(shapes.length);
               setIsDrawing(true);
               setShapes([...shapes, { points: [currentPoint] }]);
-            } else {
-              // console.log(event.target.getAncestors()[0].findAncestor());
             }
           }}
           onMouseUp={(event) => {
