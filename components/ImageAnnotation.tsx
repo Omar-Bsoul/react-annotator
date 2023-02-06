@@ -6,6 +6,14 @@ import { useDebounce } from '../hooks/debounce';
 import { DataLoop } from './DataLoop';
 import { Conditional } from './Conditional';
 import { ShapeClassifier } from './ShapeClassifier';
+import { Classification } from './types/classification';
+import { Shape } from './types/shape';
+import { Point } from './types/point';
+import { getShapeByPoint } from './helpers/get-shape-by-point';
+import { createSquarePoints } from './helpers/create-square-points';
+import { calculateDistanceBetweenTwoPoints } from './helpers/calculate-distance-between-two-points';
+import { getShapeLines } from './helpers/get-shape-lines';
+import { calculateDistanceBetweenPointAndLine } from './helpers/calculate-distance-between-point-and-line';
 
 interface ImageAnnotationProps {
   imageSrc: string;
@@ -44,14 +52,16 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
             if (isDrawing) {
               const currentPoint: Point = event.target.getStage().getPointerPosition();
 
-              const currentShape = {
+              const currentShape: Shape = {
+                id: shapes[activeShape].id,
                 points: shapes[activeShape].points.map((point) => ({
                   x: point.x,
                   y: point.y,
                 })),
+                classification: shapes[activeShape].classification,
               };
 
-              currentShape.points = calculateSquarePoints(currentShape.points[0], currentPoint);
+              currentShape.points = createSquarePoints(currentShape.points[0], currentPoint);
 
               setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
             } else {
@@ -59,7 +69,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
 
               // Handle point highlighting logic
               const flatPoints = shapes.flatMap((shape) => shape.points);
-              const pointDistances = flatPoints.map((point) => calculateDistanceBetweenPoints(currentPoint, point));
+              const pointDistances = flatPoints.map((point) => calculateDistanceBetweenTwoPoints(currentPoint, point));
 
               const minPointIndex = pointDistances.indexOf(Math.min(...pointDistances));
               // let minPointShapeIndex: number;
@@ -101,7 +111,14 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
             if (enableDrawing && !isDrawing && !mouseInsideShape) {
               setActiveShape(shapes.length);
               setIsDrawing(true);
-              setShapes([...shapes, { points: [currentPoint] }]);
+              setShapes([
+                ...shapes,
+                {
+                  id: shapes.length.toString(),
+                  points: [currentPoint],
+                  classification: undefined as any,
+                },
+              ]);
             }
           }}
           onMouseUp={(event) => {
@@ -111,9 +128,11 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
               setActiveShape(-1);
               setIsDrawing(false);
               setShapes([
-                ...shapes.slice(0, shapes.length - 1),
+                ...shapes.slice(0, activeShape),
                 {
-                  points: calculateSquarePoints(shapes[shapes.length - 1].points[0], currentPoint, true),
+                  id: activeShape.toString(),
+                  points: createSquarePoints(shapes[activeShape].points[0], currentPoint, true),
+                  classification: shapes[activeShape].classification,
                 },
               ]);
             }

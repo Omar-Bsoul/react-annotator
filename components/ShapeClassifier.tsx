@@ -36,10 +36,10 @@ export const ShapeClassifier = (props: ShapeClassifierProps) => {
         // console.log(`Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`);
       }}
       onMouseEnter={() => {
-        setMouseInsideShape(true);
+        // setMouseInsideShape(true);
       }}
       onMouseLeave={() => {
-        setMouseInsideShape(false);
+        // setMouseInsideShape(false);
       }}
     />
   );
