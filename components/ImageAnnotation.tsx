@@ -32,6 +32,8 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
   const [isDrawing, setIsDrawing] = React.useState(false);
   const [isDisplacing, setIsDisplacing] = React.useState(false);
   const [displacingPoint, setDisplacingPoint] = React.useState<Point>(undefined);
+  const [displacingPointIndex, setDisplacingPointIndex] = React.useState<number>(undefined);
+  const [displacingPointShapeIndex, setDisplacingPointShapeIndex] = React.useState<number>(undefined);
   const [enableDrawing, setEnableDrawing] = React.useState(true);
   const [selectedPoint, setSelectedPoint] = React.useState<Point>(undefined);
   const [selectedLine, setSelectedLine] = React.useState<Point[]>(undefined);
@@ -68,9 +70,9 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
   };
 
   const handleLayerMouseMove = (event: KonvaEventObject<MouseEvent>) => {
-    if (isDrawing) {
-      const currentPoint: Point = event.target.getStage().getPointerPosition();
+    const currentPoint: Point = event.target.getStage().getPointerPosition();
 
+    if (isDrawing) {
       const currentShape: Shape = {
         id: shapes[activeShape].id,
         points: shapes[activeShape].points.map((point) => ({
@@ -84,6 +86,17 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
 
       setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
     } else if (isDisplacing) {
+      console.log(shapes[displacingPointShapeIndex].points[displacingPointIndex]);
+      const points = shapes[displacingPointShapeIndex].points.map((point) => ({ x: point.x, y: point.y }));
+
+      points[displacingPointIndex] = currentPoint;
+
+      shapes[displacingPointShapeIndex] = {
+        ...shapes[displacingPointShapeIndex],
+        points,
+      };
+
+      setShapes(shapes);
     } else {
       const currentPoint: Point = event.target.getStage().getPointerPosition();
 
@@ -175,8 +188,14 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
           sortedDistances[0].distance < configuration.minimumDisplaceVertexDistance
         ) {
           const [index, distance, point] = getClosestPoint(currentPoint);
+
+          const shapeIndex = getShapeByPoint(shapes, point);
+          const pointIndex = shapes[shapeIndex].points.indexOf(point);
+
           setDisplacingPoint(point);
           setIsDisplacing(true);
+          setDisplacingPointShapeIndex(shapeIndex);
+          setDisplacingPointIndex(pointIndex);
         }
       }
     }
@@ -202,6 +221,11 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
 
       setIsDrawing(false);
       setActiveShape(-1);
+    } else if (isDisplacing) {
+      setDisplacingPoint(undefined);
+      setIsDisplacing(false);
+      setDisplacingPointShapeIndex(undefined);
+      setDisplacingPointIndex(undefined);
     }
   };
 
