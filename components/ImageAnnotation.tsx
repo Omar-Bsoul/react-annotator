@@ -13,8 +13,8 @@ import { Point } from './types/point';
 import { getShapeByPoint } from './helpers/get-shape-by-point';
 import { createSquarePoints } from './helpers/create-square-points';
 import { calculateDistanceBetweenTwoPoints } from './helpers/calculate-distance-between-two-points';
-import { getShapeLines } from './helpers/get-shape-lines';
 import { calculateDistanceBetweenPointAndLine } from './helpers/calculate-distance-between-point-and-line';
+import { getShapeLines } from './helpers/get-shape-lines';
 import { calculateSquareArea } from './helpers/calculate-square-area';
 
 interface ImageAnnotationProps {

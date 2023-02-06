@@ -1,3 +1,4 @@
+import { Point } from '../types/point';
 import { Line } from '../types/line';
 
 export const calculateDistanceBetweenPointAndLine = (point: Point, line: Line): number => {

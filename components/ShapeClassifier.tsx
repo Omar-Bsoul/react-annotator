@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { Stage, Image, Layer, Rect, Group, Star, Text, Line, Circle } from 'react-konva';
 import { Shape } from './types/Shape';
+import { Point } from './types/Point';
+import { calculateDistanceBetweenTwoPoints } from './helpers/calculate-distance-between-two-points';
+import { calculateDistanceBetweenPointAndLine } from './helpers/calculate-distance-between-point-and-line';
+import { getShapeLines } from './helpers/get-shape-lines';
 
 export interface ShapeClassifierProps {
   shape: Shape;
@@ -16,24 +20,26 @@ export const ShapeClassifier = (props: ShapeClassifierProps) => {
       closed={true}
       onMouseMove={(event) => {}}
       onMouseDown={(event) => {
-        // const currentPoint: Point = event.target.getStage().getPointerPosition();
-        // const distanceObj = [
-        //   calculateDistanceBetweenPoints(currentPoint, shape.points[0]),
-        //   calculateDistanceBetweenPoints(currentPoint, shape.points[1]),
-        //   calculateDistanceBetweenPoints(currentPoint, shape.points[2]),
-        //   calculateDistanceBetweenPoints(currentPoint, shape.points[3]),
-        // ];
-        // const pointNameMapping: any = {
-        //   0: 'Top Left',
-        //   1: 'Top Right',
-        //   2: 'Bottom Right',
-        //   3: 'Bottom Left',
-        // };
-        // const minIndex = distanceObj.indexOf(Math.min(...distanceObj));
-        // if (distanceObj[minIndex] < 8) {
-        //   setSelectedPoint(shape.points[minIndex]);
-        // }
-        // console.log(`Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`);
+        const currentPoint: Point = event.target.getStage().getPointerPosition();
+
+        const lines = getShapeLines(props.shape);
+
+        const verteicesDistances = props.shape.points.map((vertex) => ({
+          distance: calculateDistanceBetweenTwoPoints(currentPoint, vertex),
+          kind: 'Vertex',
+        }));
+
+        const edgesDistances = lines
+          .map((line) => ({
+            x: (line[0].x + line[1].x) / 2,
+            y: (line[0].y + line[1].y) / 2,
+          }))
+          .map((lineAddVertex) => ({
+            distance: calculateDistanceBetweenTwoPoints(currentPoint, lineAddVertex),
+            kind: 'LineAddVertex',
+          }));
+
+        [...verteicesDistances, ...edgesDistances].sort((a, b) => a.distance - b.distance);
       }}
       onMouseEnter={() => {
         // setMouseInsideShape(true);
