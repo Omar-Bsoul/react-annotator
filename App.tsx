@@ -58,7 +58,7 @@ export const App = () => {
         <CssBaseline />
         <Box>
           <AppBar disableGutters>
-            <Toolbar dense>
+            <Toolbar>
               <Typography variant="h6" sx={{ flexGrow: 1 }}>
                 Dataset Annotator
               </Typography>
