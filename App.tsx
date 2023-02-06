@@ -42,7 +42,7 @@ export const App = () => {
     []
   );
 
-  const theme = React.useMemo(
+  const theme = React.useMemo<any>(
     () =>
       createTheme({
         palette: {
@@ -57,7 +57,7 @@ export const App = () => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box>
-          <AppBar disableGutters>
+          <AppBar>
             <Toolbar>
               <Typography variant="h6" sx={{ flexGrow: 1 }}>
                 Dataset Annotator
