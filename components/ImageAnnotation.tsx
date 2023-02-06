@@ -120,6 +120,7 @@ const useDebounce = (callback: (...args: any) => void, delay: number) => {
 };
 
 const getShapeByPoint = (shapes: Shape[], point: Point) => {
+  console.log(point);
   for (let i = 0; i < shapes.length; i++) {
     for (let j = 0; i < shapes[i].points.length; j++) {
       if (shapes[i].points[j].x === point.x && shapes[i].points[j].y === point.y) {
@@ -141,14 +142,14 @@ export const ImageAnnotation = (props: Props) => {
   const [mouseInsideShape, setMouseInsideShape] = React.useState(false);
   const [image] = useImage(props.imageSrc);
   const [debouncePointMouseLogging, clearDebouncePointMouseLogging] = useDebounce((minIndex: number) => {
-    console.log(`Shape id - ${Math.floor(minIndex / 4)}`);
+    // console.log(`Shape id - ${Math.floor(minIndex / 4)}`);
   }, 500);
   const [debounceLineMouseLogging, clearDebounceLineMouseLogging] = useDebounce((x1Index: number, x2Index: number) => {
-    console.log(
-      `Line - ${selectedLine[0].x.toFixed(4)},${selectedLine[0].y.toFixed(4)} - ${selectedLine[1].x.toFixed(
-        4,
-      )},${selectedLine[1].y.toFixed(4)}`,
-    );
+    // console.log(
+    //   `Line - ${selectedLine[0].x.toFixed(4)},${selectedLine[0].y.toFixed(4)} - ${selectedLine[1].x.toFixed(
+    //     4,
+    //   )},${selectedLine[1].y.toFixed(4)}`,
+    // );
   }, 500);
 
   return (
