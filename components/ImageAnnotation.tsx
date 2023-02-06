@@ -119,6 +119,18 @@ const useDebounce = (callback: (...args: any) => void, delay: number) => {
   return [debounce, clearDebounce];
 };
 
+const getShapeByPoint = (shapes: Shape[], point: Point) => {
+  for (let i = 0; i < shapes.length; i++) {
+    for (let j = 0; i < shapes[i].points.length; j++) {
+      if (shapes[i].points[j].x === point.x && shapes[i].points[j].y === point.y) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
+};
+
 export const ImageAnnotation = (props: Props) => {
   const [shapes, setShapes] = React.useState<Shape[]>([]);
   const [activeShape, setActiveShape] = React.useState<number>(-1);
@@ -186,11 +198,26 @@ export const ImageAnnotation = (props: Props) => {
                 }
 
                 // Handle line highlighting logic
-                if (secondMinIndex >= 0 && minIndex !== secondMinIndex) {
-                  const line = [flatPoints[minIndex], flatPoints[secondMinIndex]];
+                const shapeIndex = getShapeByPoint(shapes, flatPoints[minIndex]);
+                const shapePointIndex = shapes[shapeIndex].points.indexOf(flatPoints[minIndex]);
 
-                  if (calculateDistanceBetweenPointAndLine(currentPoint, line) < 15) {
-                    setSelectedLine(line);
+                if (secondMinIndex >= 0 && minIndex !== secondMinIndex) {
+                  const shapePreviousPointIndex =
+                    shapePointIndex === 0 ? shapes[shapeIndex].points.length - 1 : shapePointIndex - 1;
+                  const shapeNextPointIndex =
+                    shapePointIndex === shapes[shapeIndex].points.length - 1 ? 0 : shapePointIndex + 1;
+
+                  const lines = [
+                    [shapes[shapeIndex].points[shapePointIndex], shapes[shapeIndex].points[shapePreviousPointIndex]],
+                    [shapes[shapeIndex].points[shapePointIndex], shapes[shapeIndex].points[shapeNextPointIndex]],
+                  ];
+
+                  const lineDistances = lines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
+
+                  const minLineIndex = lineDistances.indexOf(Math.min(...lineDistances));
+
+                  if (lineDistances[minLineIndex] < 15) {
+                    setSelectedLine(lines[minLineIndex]);
                     debounceLineMouseLogging(minIndex, secondMinIndex);
                   } else {
                     setSelectedLine(undefined);
