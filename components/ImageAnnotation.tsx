@@ -35,11 +35,15 @@ interface Shape {
   points: Point[];
 }
 
-const calculateSquarePoints = (start: Point, end: Point) => {
-  const x1 = start.x;
-  const y1 = start.y;
-  const x2 = end.x;
-  const y2 = end.y;
+const calculateSquarePoints = (
+  start: Point,
+  end: Point,
+  sort: boolean = false
+) => {
+  const x1 = sort ? Math.min(start.x, end.x) : start.x;
+  const y1 = sort ? Math.min(start.y, end.y) : start.y;
+  const x2 = sort ? Math.max(start.x, end.x) : end.x;
+  const y2 = sort ? Math.max(start.y, end.y) : end.y;
 
   return [
     { x: x1, y: y1 },
@@ -53,7 +57,7 @@ export const ImageAnnotation = (props: Props) => {
   const [shapes, setShapes] = React.useState<Shape[]>([]);
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
-  const [enableDrawing, setEnableDrawing] = React.useState(false);
+  const [enableDrawing, setEnableDrawing] = React.useState(true);
   const [image] = useImage(props.imageSrc);
 
   React.useEffect(() => {
@@ -121,7 +125,8 @@ export const ImageAnnotation = (props: Props) => {
                 {
                   points: calculateSquarePoints(
                     shapes[shapes.length - 1].points[0],
-                    currentPoint
+                    currentPoint,
+                    true
                   ),
                 },
               ]);
@@ -144,10 +149,24 @@ export const ImageAnnotation = (props: Props) => {
                     .getStage()
                     .getPointerPosition();
 
-                  console.log({
-                    x: currentPoint.x - shape.points[0].x,
-                    y: currentPoint.y - shape.points[0].y,
-                  });
+                  const distanceCalc = (a: Point, b: Point) => {
+                    return Math.sqrt(
+                      Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
+                    );
+                  };
+
+                  const distanceObj = [
+                    distanceCalc(currentPoint, shape.points[0]),
+                    distanceCalc(currentPoint, shape.points[1]),
+                    distanceCalc(currentPoint, shape.points[2]),
+                    distanceCalc(currentPoint, shape.points[3]),
+                  ];
+
+                  console.log(
+                    `Min point is ${distanceObj.indexOf(
+                      Math.min(...distanceObj)
+                    )}`
+                  );
                 }}
               />
             )}
