@@ -17,11 +17,16 @@ interface DataMapProps<T> {
   children: any;
 }
 
-const DataMap = <T>(props: DataMapProps<T>) => {
-  React.Children.only(props.children);
+const DataMap = function <T>(props: DataMapProps<T>) {
+  const render: (item: T) => React.ReactElement = React.Children.only(
+    props.children
+  );
+
+  return (
+    <React.Fragment>{props.data.map((item) => render(item))}</React.Fragment>
+  );
 };
 
-/*
 interface Props {
   imageSrc: string;
   classes: string[];
@@ -61,42 +66,32 @@ export const ImageAnnotation = (props: Props) => {
       <Layer
         // onClick={handleOnLayerClick}
         onMouseMove={(event) => {
-          if (isDrawing) {
-            const { x, y } = event.target.getStage().getPointerPosition();
-
-            setPoints(calculateSquarePoints(points[0], { x, y }));
-          }
+          // if (isDrawing) {
+          //   const { x, y } = event.target.getStage().getPointerPosition();
+          //   setPoints(calculateSquarePoints(points[0], { x, y }));
+          // }
         }}
         onMouseDown={(event) => {
-          const { x, y } = event.target.getStage().getPointerPosition();
-
-          if (isDrawing) {
-            setPoints(calculateSquarePoints(points[0], { x, y }));
-          } else {
-            setIsDrawing(true);
-
-            setPoints([{ x, y }]);
-          }
+          // const { x, y } = event.target.getStage().getPointerPosition();
+          // if (isDrawing) {
+          //   setPoints(calculateSquarePoints(points[0], { x, y }));
+          // } else {
+          //   setIsDrawing(true);
+          //   setPoints([{ x, y }]);
+          // }
         }}
         onMouseUp={(event) => {
-          if (isDrawing) {
-            setIsDrawing(false);
-          }
+          // if (isDrawing) {
+          //   setIsDrawing(false);
+          // }
         }}
       >
         <Image image={image} />
-        <Line
-          points={points.flatMap((point) => [point.x, point.y])}
-          fill="#60224F44"
-          stroke="black"
-          strokeWidth={2}
-          closed={true}
-        />
       </Layer>
     </Stage>
   );
 };
-*/
+
 /*
 type Color =
   | string
