@@ -232,7 +232,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
         <Button onClick={() => setEnableDrawing(!enableDrawing)}>Toggle Drawing</Button>
         <Typography>{enableDrawing ? 'Drawing Enabled' : 'Drawing Disabled'}</Typography>
       </Stack>
-      <Stage width={window.innerWidth} height={400}>
+      <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer onMouseMove={handleLayerMouseMove} onMouseDown={handleLayerMouseDown} onMouseUp={handleLayerMouseUp}>
           <Image image={image} />
           <DataLoop data={shapes}>{(shape, i) => <ShapeClassifier key={i} shape={shape} />}</DataLoop>
