@@ -45,12 +45,16 @@ const calculateSquarePoints = (start: Point, end: Point, sort: boolean = false) 
   const x2 = sort ? Math.max(start.x, end.x) : end.x;
   const y2 = sort ? Math.max(start.y, end.y) : end.y;
 
-  return [
+  const result = [
     { x: x1, y: y1 },
     { x: x2, y: y1 },
     { x: x2, y: y2 },
     { x: x1, y: y2 },
   ];
+
+  console.log(result);
+
+  return result;
 };
 
 interface Point {
@@ -178,10 +182,9 @@ export const ImageAnnotation = (props: Props) => {
 
               currentShape.points = calculateSquarePoints(currentShape.points[0], currentPoint);
 
-              setShapes(shapes);
-
               setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
             } else {
+              return;
               const currentPoint: Point = event.target.getStage().getPointerPosition();
 
               const flatPoints = shapes.flatMap((shape) => shape.points);
@@ -270,29 +273,24 @@ export const ImageAnnotation = (props: Props) => {
                 id={i.toString()}
                 onMouseMove={(event) => {}}
                 onMouseDown={(event) => {
-                  const currentPoint: Point = event.target.getStage().getPointerPosition();
-
-                  const distanceObj = [
-                    calculateDistanceBetweenPoints(currentPoint, shape.points[0]),
-                    calculateDistanceBetweenPoints(currentPoint, shape.points[1]),
-                    calculateDistanceBetweenPoints(currentPoint, shape.points[2]),
-                    calculateDistanceBetweenPoints(currentPoint, shape.points[3]),
-                  ];
-
-                  const pointNameMapping: any = {
-                    0: 'Top Left',
-                    1: 'Top Right',
-                    2: 'Bottom Right',
-                    3: 'Bottom Left',
-                  };
-
-                  const minIndex = distanceObj.indexOf(Math.min(...distanceObj));
-
-                  if (distanceObj[minIndex] < 8) {
-                    setSelectedPoint(shape.points[minIndex]);
-                  }
-
-                  console.log(`Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`);
+                  // const currentPoint: Point = event.target.getStage().getPointerPosition();
+                  // const distanceObj = [
+                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[0]),
+                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[1]),
+                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[2]),
+                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[3]),
+                  // ];
+                  // const pointNameMapping: any = {
+                  //   0: 'Top Left',
+                  //   1: 'Top Right',
+                  //   2: 'Bottom Right',
+                  //   3: 'Bottom Left',
+                  // };
+                  // const minIndex = distanceObj.indexOf(Math.min(...distanceObj));
+                  // if (distanceObj[minIndex] < 8) {
+                  //   setSelectedPoint(shape.points[minIndex]);
+                  // }
+                  // console.log(`Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`);
                 }}
                 onMouseEnter={() => {
                   setMouseInsideShape(true);
@@ -303,7 +301,7 @@ export const ImageAnnotation = (props: Props) => {
               />
             )}
           </DataMap>
-          <Conditional condition={Boolean(selectedLine)}>
+          {/* <Conditional condition={Boolean(selectedLine)}>
             {() => (
               <React.Fragment>
                 <Line points={selectedLine.flatMap((point) => [point.x, point.y])} stroke="#FFFFFF77" strokeWidth={6} />
@@ -318,15 +316,15 @@ export const ImageAnnotation = (props: Props) => {
                 />
               </React.Fragment>
             )}
-          </Conditional>
-          <Conditional condition={Boolean(selectedPoint)}>
+          </Conditional> */}
+          {/* <Conditional condition={Boolean(selectedPoint)}>
             {() => (
               <React.Fragment>
                 <Circle x={selectedPoint.x} y={selectedPoint.y} radius={3} stroke="#FFFFFF77" strokeWidth={6} />
                 <Circle x={selectedPoint.x} y={selectedPoint.y} radius={3} fill="black" />
               </React.Fragment>
             )}
-          </Conditional>
+          </Conditional> */}
         </Layer>
       </Stage>
     </Stack>
