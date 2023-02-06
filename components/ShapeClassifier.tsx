@@ -19,35 +19,7 @@ export const ShapeClassifier = (props: ShapeClassifierProps) => {
       strokeWidth={2}
       closed={true}
       onMouseMove={(event) => {}}
-      onMouseDown={(event) => {
-        const currentPoint: Point = event.target.getStage().getPointerPosition();
-
-        const lines = getShapeLines(props.shape);
-
-        const verteicesDistances = props.shape.points.map((vertex) => ({
-          distance: calculateDistanceBetweenTwoPoints(currentPoint, vertex),
-          kind: 'Vertex',
-        }));
-
-        const edgesDistances = lines
-          .map((line) => ({
-            x: (line[0].x + line[1].x) / 2,
-            y: (line[0].y + line[1].y) / 2,
-          }))
-          .map((lineAddVertex) => ({
-            distance: calculateDistanceBetweenTwoPoints(currentPoint, lineAddVertex),
-            kind: 'LineAddVertex',
-          }));
-
-        const sortedDistances = [...verteicesDistances, ...edgesDistances].sort((a, b) => a.distance - b.distance);
-
-        console.log(sortedDistances);
-
-        if (sortedDistances.length > 0) {
-          sortedDistances[0].kind === 'LineAddVertex' && console.log('Create new vertex');
-          sortedDistances[0].kind === 'Vertex' && console.log('Drag vertex');
-        }
-      }}
+      onMouseDown={(event) => {}}
       onMouseEnter={() => {
         // setMouseInsideShape(true);
       }}

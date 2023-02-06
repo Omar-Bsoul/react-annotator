@@ -18,5 +18,7 @@ export const useConfiguration = () => {
     highlightedPointForegroundColor: '#000000',
     highlightedPointForegroundRadius: 3,
     snackbarErrorDuration: 2000,
+    minimumCreateVertexDistance: 10,
+    minimumDisplaceVertexDistance: 5,
   };
 };

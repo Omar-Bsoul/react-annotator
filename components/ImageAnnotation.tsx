@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stage, Image, Layer, Rect, Group, Star, Text, Line, Circle, KonvaEventObject } from 'react-konva';
+import { Stage, Image, Layer, Rect, Group, Star, Text, Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 import { Box, Stack, Paper, Button, Typography, Alert, Snackbar } from '@mui/material';
 import { useDebounce } from '../hooks/debounce';
@@ -10,12 +10,14 @@ import { ShapeClassifier } from './ShapeClassifier';
 import { Classification } from './types/classification';
 import { Shape } from './types/shape';
 import { Point } from './types/point';
+import { DistanceKind } from './types/distance-kind';
 import { getShapeByPoint } from './helpers/get-shape-by-point';
 import { createSquarePoints } from './helpers/create-square-points';
 import { calculateDistanceBetweenTwoPoints } from './helpers/calculate-distance-between-two-points';
 import { calculateDistanceBetweenPointAndLine } from './helpers/calculate-distance-between-point-and-line';
 import { getShapeLines } from './helpers/get-shape-lines';
 import { calculateSquareArea } from './helpers/calculate-square-area';
+import { KonvaEventObject } from 'konva/lib/Node';
 
 interface ImageAnnotationProps {
   imageSrc: string;
@@ -43,6 +45,15 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
     }
   }, configuration.debounceDuration);
   const [errorSnackbarOpen, setErrorSnackbarOpen] = React.useState(false);
+
+  const getClosestLine = (currentPoint: Point) => {
+    const flatLines = shapes.flatMap((shape) => getShapeLines(shape));
+    const lineDistances = flatLines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
+
+    const minLineIndex = lineDistances.indexOf(Math.min(...lineDistances));
+
+    return [minLineIndex, lineDistances[minLineIndex], flatLines[minLineIndex]];
+  };
 
   const handleLayerMouseMove = (event: KonvaEventObject<MouseEvent>) => {
     if (isDrawing) {
@@ -75,28 +86,22 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
 
         if (pointDistances[minPointIndex] < configuration.minimumVertexHighlightDistance) {
           setSelectedPoint(flatPoints[minPointIndex]);
-          debouncePointMouseLogging(flatPoints[minPointIndex]);
+          if (enableDrawing) debouncePointMouseLogging(flatPoints[minPointIndex]);
         } else {
           setSelectedPoint(undefined);
-          clearDebouncePointMouseLogging();
+          if (enableDrawing) clearDebouncePointMouseLogging();
         }
       }
 
       // Handle line highlighting logic
-      const flatLines = shapes.flatMap((shape) => getShapeLines(shape));
-      const lineDistances = flatLines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
-
-      const minLineIndex = lineDistances.indexOf(Math.min(...lineDistances));
-
+      const [minLineIndex, distance, line] = getClosestLine(currentPoint);
       if (minLineIndex >= 0) {
-        // const minLineShapeIndex = getShapeByPoint(shapes, flatLines[minLineIndex][0]);
-
-        if (lineDistances[minLineIndex] < configuration.minimumLineHighlightedDistance) {
-          setSelectedLine(flatLines[minLineIndex]);
-          debounceLineMouseLogging(flatLines[minLineIndex]);
+        if (distance < configuration.minimumLineHighlightedDistance) {
+          setSelectedLine(line);
+          if (enableDrawing) debounceLineMouseLogging(line);
         } else {
           setSelectedLine(undefined);
-          clearDebounceLineMouseLogging();
+          if (enableDrawing) clearDebounceLineMouseLogging();
         }
       }
     }
@@ -116,6 +121,51 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       ]);
       setIsDrawing(true);
       setActiveShape(shapes.length);
+    } else {
+      const currentPoint: Point = event.target.getStage().getPointerPosition();
+
+      const verticesDistances = shapes.flatMap((shape) =>
+        shape.points.map((vertex) => ({
+          distance: calculateDistanceBetweenTwoPoints(currentPoint, vertex),
+          kind: DistanceKind.DisplaceVertex,
+        })),
+      );
+
+      const lines = shapes.flatMap((shape) => getShapeLines(shape));
+      const edgeMidPointsDistances = lines
+        .map((line) => ({
+          x: (line[0].x + line[1].x) / 2,
+          y: (line[0].y + line[1].y) / 2,
+        }))
+        .map((lineAddVertex) => ({
+          distance: calculateDistanceBetweenTwoPoints(currentPoint, lineAddVertex),
+          kind: DistanceKind.CreateVertex,
+        }));
+
+      const sortedDistances = [...verticesDistances, ...edgeMidPointsDistances].sort((a, b) => a.distance - b.distance);
+
+      if (sortedDistances.length > 0) {
+        if (
+          sortedDistances[0].kind === DistanceKind.CreateVertex &&
+          sortedDistances[0].distance < configuration.minimumCreateVertexDistance
+        ) {
+          console.log('Create new vertex');
+          const [minLineIndex, distance, line] = getClosestLine(currentPoint);
+          if (minLineIndex >= 0) {
+            const shapeIndex = getShapeByPoint(shapes, line);
+            const shape = { ...shapes[shapeIndex] };
+
+            const lineStartIndex = shape.points.indexOf(line[0]);
+
+            shape.points = [...shape.points].map((point) => ({ x: point.x, y: point.y }));
+          }
+        } else if (
+          sortedDistances[0].kind === DistanceKind.DisplaceVertex &&
+          sortedDistances[0].distance < configuration.minimumDisplaceVertexDistance
+        ) {
+          console.log('Drag vertex');
+        }
+      }
     }
   };
 
