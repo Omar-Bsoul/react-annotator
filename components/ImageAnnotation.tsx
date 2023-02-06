@@ -52,8 +52,6 @@ const calculateSquarePoints = (start: Point, end: Point, sort: boolean = false) 
     { x: x1, y: y2 },
   ];
 
-  console.log(result);
-
   return result;
 };
 
@@ -125,18 +123,23 @@ const useDebounce = (callback: (...args: any) => void, delay: number) => {
 
 const getShapeByPoint = (shapes: Shape[], point: Point) => {
   for (let i = 0; i < shapes.length; i++) {
-    for (let j = 0; i < shapes[i].points.length; j++) {
-      if (!shapes[i].points[j]) {
-        continue;
-      }
-
+    for (let j = 0; j < shapes[i].points.length; j++) {
       if (shapes[i].points[j].x === point.x && shapes[i].points[j].y === point.y) {
         return i;
       }
     }
   }
+};
 
-  return -1;
+const getShapeLines = (shape: Shape) => {
+  const lines: Point[][] = [];
+
+  for (let i = 0; i < shape.points.length - 1; i++) {
+    lines.push([shape.points[i], shape.points[i + 1]]);
+  }
+  lines.push([shape.points[shape.points.length - 1], shape.points[0]]);
+
+  return lines;
 };
 
 export const ImageAnnotation = (props: Props) => {
@@ -148,15 +151,15 @@ export const ImageAnnotation = (props: Props) => {
   const [selectedLine, setSelectedLine] = React.useState<Point[]>(undefined);
   const [mouseInsideShape, setMouseInsideShape] = React.useState(false);
   const [image] = useImage(props.imageSrc);
-  const [debouncePointMouseLogging, clearDebouncePointMouseLogging] = useDebounce((minIndex: number) => {
-    // console.log(`Shape id - ${Math.floor(minIndex / 4)}`);
+  const [debouncePointMouseLogging, clearDebouncePointMouseLogging] = useDebounce((point: Point) => {
+    if (point) {
+      console.log(`Shape id - Point - ${getShapeByPoint(shapes, point)}`);
+    }
   }, 500);
-  const [debounceLineMouseLogging, clearDebounceLineMouseLogging] = useDebounce((x1Index: number, x2Index: number) => {
-    // console.log(
-    //   `Line - ${selectedLine[0].x.toFixed(4)},${selectedLine[0].y.toFixed(4)} - ${selectedLine[1].x.toFixed(
-    //     4,
-    //   )},${selectedLine[1].y.toFixed(4)}`,
-    // );
+  const [debounceLineMouseLogging, clearDebounceLineMouseLogging] = useDebounce((line: Point[]) => {
+    if (line) {
+      console.log(`Shape id - Line - ${getShapeByPoint(shapes, line[0])}`);
+    }
   }, 500);
 
   return (
@@ -178,60 +181,46 @@ export const ImageAnnotation = (props: Props) => {
                 })),
               };
 
-              console.log(currentShape);
-
               currentShape.points = calculateSquarePoints(currentShape.points[0], currentPoint);
 
               setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
             } else {
-              return;
               const currentPoint: Point = event.target.getStage().getPointerPosition();
 
+              // Handle point highlighting logic
               const flatPoints = shapes.flatMap((shape) => shape.points);
               const pointDistances = flatPoints.map((point) => calculateDistanceBetweenPoints(currentPoint, point));
 
-              const minIndex = pointDistances.indexOf(Math.min(...pointDistances));
+              const minPointIndex = pointDistances.indexOf(Math.min(...pointDistances));
+              // let minPointShapeIndex: number;
 
-              if (minIndex >= 0) {
-                const secondMinIndex = pointDistances.indexOf(
-                  Math.min(...pointDistances.filter((point, i) => i !== minIndex)),
-                );
+              if (minPointIndex >= 0) {
+                // minPointShapeIndex = getShapeByPoint(shapes, flatPoints[minPointIndex]);
 
-                // Handle point highlighting logic
-                if (pointDistances[minIndex] < 25) {
-                  setSelectedPoint(flatPoints[minIndex]);
-                  //debouncePointMouseLogging(minIndex);
+                if (pointDistances[minPointIndex] < 25) {
+                  setSelectedPoint(flatPoints[minPointIndex]);
+                  debouncePointMouseLogging(flatPoints[minPointIndex]);
                 } else {
                   setSelectedPoint(undefined);
-                  //clearDebouncePointMouseLogging();
+                  clearDebouncePointMouseLogging();
                 }
+              }
 
-                // Handle line highlighting logic
-                const shapeIndex = getShapeByPoint(shapes, flatPoints[minIndex]);
-                const shapePointIndex = shapes[shapeIndex].points.indexOf(flatPoints[minIndex]);
+              // Handle line highlighting logic
+              const flatLines = shapes.flatMap((shape) => getShapeLines(shape));
+              const lineDistances = flatLines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
 
-                if (secondMinIndex >= 0 && minIndex !== secondMinIndex) {
-                  const shapePreviousPointIndex =
-                    shapePointIndex === 0 ? shapes[shapeIndex].points.length - 1 : shapePointIndex - 1;
-                  const shapeNextPointIndex =
-                    shapePointIndex === shapes[shapeIndex].points.length - 1 ? 0 : shapePointIndex + 1;
+              const minLineIndex = lineDistances.indexOf(Math.min(...lineDistances));
 
-                  const lines = [
-                    [shapes[shapeIndex].points[shapePointIndex], shapes[shapeIndex].points[shapePreviousPointIndex]],
-                    [shapes[shapeIndex].points[shapePointIndex], shapes[shapeIndex].points[shapeNextPointIndex]],
-                  ];
+              if (minLineIndex >= 0) {
+                // const minLineShapeIndex = getShapeByPoint(shapes, flatLines[minLineIndex][0]);
 
-                  const lineDistances = lines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
-
-                  const minLineIndex = lineDistances.indexOf(Math.min(...lineDistances));
-
-                  if (lineDistances[minLineIndex] < 15) {
-                    setSelectedLine(lines[minLineIndex]);
-                    //debounceLineMouseLogging(minIndex, secondMinIndex);
-                  } else {
-                    setSelectedLine(undefined);
-                    //clearDebounceLineMouseLogging();
-                  }
+                if (lineDistances[minLineIndex] < 15) {
+                  setSelectedLine(flatLines[minLineIndex]);
+                  debounceLineMouseLogging(flatLines[minLineIndex]);
+                } else {
+                  setSelectedLine(undefined);
+                  clearDebounceLineMouseLogging();
                 }
               }
             }
@@ -301,7 +290,7 @@ export const ImageAnnotation = (props: Props) => {
               />
             )}
           </DataMap>
-          {/* <Conditional condition={Boolean(selectedLine)}>
+          <Conditional condition={Boolean(selectedLine)}>
             {() => (
               <React.Fragment>
                 <Line points={selectedLine.flatMap((point) => [point.x, point.y])} stroke="#FFFFFF77" strokeWidth={6} />
@@ -316,15 +305,15 @@ export const ImageAnnotation = (props: Props) => {
                 />
               </React.Fragment>
             )}
-          </Conditional> */}
-          {/* <Conditional condition={Boolean(selectedPoint)}>
+          </Conditional>
+          <Conditional condition={Boolean(selectedPoint)}>
             {() => (
               <React.Fragment>
                 <Circle x={selectedPoint.x} y={selectedPoint.y} radius={3} stroke="#FFFFFF77" strokeWidth={6} />
                 <Circle x={selectedPoint.x} y={selectedPoint.y} radius={3} fill="black" />
               </React.Fragment>
             )}
-          </Conditional> */}
+          </Conditional>
         </Layer>
       </Stage>
     </Stack>
