@@ -24,7 +24,10 @@ export default function Root() {
       sx={{ m: 1, overflow: 'hidden', maxHeight: 'calc(100vh - 80px)' }}
     >
       <Stack direction="row">
-        <ImageAnnotation imageSrc="https://picsum.photos/id/674/400" />
+        <ImageAnnotation
+          imageSrc="https://picsum.photos/id/674/400"
+          classes={[]}
+        />
         <Divider orientation="vertical" flexItem />
         {/* <ImageAnnotation /> */}
       </Stack>

@@ -18,6 +18,7 @@ interface DataMapProps<T> {
 }
 
 const DataMap = function <T>(props: DataMapProps<T>) {
+  console.log(React.Children.toArray(props.children));
   const render: (item: T) => React.ReactElement = React.Children.only(
     props.children
   );
@@ -87,6 +88,18 @@ export const ImageAnnotation = (props: Props) => {
         }}
       >
         <Image image={image} />
+        <DataMap data={shapes}>
+          {(shape) => (
+            <Line
+              // points={points.flatMap((point) => [point.x, point.y])}
+              points={[23, 20, 23, 160, 70, 93, 150, 109, 290, 139, 270, 93]}
+              fill="#60224F44"
+              stroke="black"
+              strokeWidth={2}
+              closed={true}
+            />
+          )}
+        </DataMap>
       </Layer>
     </Stage>
   );
