@@ -10,7 +10,7 @@ import {
   Line,
 } from 'react-konva';
 import useImage from 'use-image';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Paper, Button, Typography } from '@mui/material';
 
 interface DataMapProps<T> {
   data: T[];
@@ -53,77 +53,100 @@ export const ImageAnnotation = (props: Props) => {
   const [shapes, setShapes] = React.useState<Shape[]>([]);
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
+  const [enableDrawing, setEnableDrawing] = React.useState(false);
   const [image] = useImage(props.imageSrc);
 
-  console.log(shapes);
+  React.useEffect(() => {
+    console.log(shapes);
+  }, [shapes]);
 
   return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer
-        // onClick={handleOnLayerClick}
-        onMouseMove={(event) => {
-          if (isDrawing) {
-            const { x, y } = event.target.getStage().getPointerPosition();
+    <Stack>
+      <Stack direction="row">
+        <Paper>
+          <Button onClick={() => setEnableDrawing(!enableDrawing)}>
+            Toggle Drawing
+          </Button>
+          <Typography>
+            {enableDrawaing ? 'Drawing Enabled' : 'Drawing Disabled'}
+          </Typography>
+        </Paper>
+      </Stack>
+      <Stage width={window.innerWidth} height={window.innerHeight}>
+        <Layer
+          onMouseMove={(event) => {
+            if (isDrawing) {
+              const currentPoint: Point = event.target
+                .getStage()
+                .getPointerPosition();
 
-            const updatedShapes = [...shapes];
+              const currentShape = {
+                points: shapes[activeShape].points.map((point) => ({
+                  x: point.x,
+                  y: point.y,
+                })),
+              };
 
-            updatedShapes[activeShape].points = calculateSquarePoints(
-              updatedShapes[activeShape].points[0],
-              { x, y }
-            );
+              currentShape.points = calculateSquarePoints(
+                currentShape.points[0],
+                currentPoint
+              );
 
-            setShapes(updatedShapes);
-          }
-        }}
-        onMouseDown={(event) => {
-          const { x, y } = event.target.getStage().getPointerPosition();
+              setShapes(shapes);
 
-          if (isDrawing) {
-            const updatedShapes = [...shapes];
-
-            updatedShapes[activeShape].points = calculateSquarePoints(
-              updatedShapes[activeShape].points[0],
-              { x, y }
-            );
-
-            setShapes(updatedShapes);
-          } else {
-            if (activeShape < 0) {
-              setActiveShape(shapes.length);
-              setShapes([...shapes, { points: [] }]);
-              setIsDrawing(true);
-            } else {
-              const updatedShapes = [...shapes];
-
-              updatedShapes[activeShape].points = [{ x, y }];
-
-              setShapes(updatedShapes);
+              setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
             }
-          }
-        }}
-        onMouseUp={(event) => {
-          if (isDrawing) {
-            setIsDrawing(false);
-            setActiveShape(-1);
-          }
-        }}
-      >
-        <Image image={image} />
-        <DataMap data={shapes}>
-          {(shape, i) => (
-            <Line
-              key={i}
-              points={shape.points.flatMap((point) => [point.x, point.y])}
-              poits={[23, 20, 23, 160, 70, 93, 150, 109, 290, 139, 270, 93]}
-              fill="#60224F44"
-              stroke="black"
-              strokeWidth={2}
-              closed={true}
-            />
-          )}
-        </DataMap>
-      </Layer>
-    </Stage>
+          }}
+          onMouseDown={(event) => {
+            const currentPoint: Point = event.target
+              .getStage()
+              .getPointerPosition();
+
+            console.log(event.target.getType());
+
+            if (enableDrawing) {
+              setActiveShape(shapes.length);
+              setIsDrawing(true);
+              setShapes([...shapes, { points: [currentPoint] }]);
+            }
+          }}
+          onMouseUp={(event) => {
+            if (isDrawing) {
+              const currentPoint: Point = event.target
+                .getStage()
+                .getPointerPosition();
+
+              setActiveShape(-1);
+              setIsDrawing(false);
+              setShapes([
+                ...shapes.slice(0, shapes.length - 1),
+                {
+                  points: calculateSquarePoints(
+                    shapes[shapes.length - 1].points[0],
+                    currentPoint
+                  ),
+                },
+              ]);
+            }
+          }}
+        >
+          <Image image={image} />
+          <DataMap data={shapes}>
+            {(shape, i) => (
+              <Line
+                key={i}
+                points={shape.points.flatMap((point) => [point.x, point.y])}
+                poits={[23, 20, 23, 160, 70, 93, 150, 109, 290, 139, 270, 93]}
+                fill="#60224F44"
+                stroke="black"
+                strokeWidth={2}
+                closed={true}
+              />
+            )}
+          </DataMap>
+        </Layer>
+      </Stage>
+    </Stack>
   );
 };
 
