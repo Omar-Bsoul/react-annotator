@@ -8,6 +8,7 @@ import {
   Star,
   Text,
   Line,
+  Circle,
 } from 'react-konva';
 import useImage from 'use-image';
 import { Box, Stack, Paper, Button, Typography } from '@mui/material';
@@ -19,6 +20,19 @@ interface DataMapProps<T> {
 
 const DataMap = function <T>(props: DataMapProps<T>) {
   return <React.Fragment>{props.data.map(props.children)}</React.Fragment>;
+};
+
+interface ConditionalProps {
+  condition: boolean;
+  children: () => React.ReactElement;
+}
+
+const Conditional = (props: ConditionalProps) => {
+  if (props.condition) {
+    return props.children();
+  } else {
+    return <React.Fragment />;
+  }
 };
 
 interface Props {
@@ -58,6 +72,7 @@ export const ImageAnnotation = (props: Props) => {
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
   const [enableDrawing, setEnableDrawing] = React.useState(true);
+  const [selectedPoint, setSelectedPoint] = React.useState<Point>(undefined);
   const [image] = useImage(props.imageSrc);
 
   React.useEffect(() => {
@@ -144,6 +159,7 @@ export const ImageAnnotation = (props: Props) => {
                 strokeWidth={2}
                 closed={true}
                 id={i.toString()}
+                
                 onMouseDown={(event) => {
                   const currentPoint: Point = event.target
                     .getStage()
@@ -173,6 +189,10 @@ export const ImageAnnotation = (props: Props) => {
                     Math.min(...distanceObj)
                   );
 
+                  if (distanceObj[minIndex] < 25) {
+                    setSelectedPoint(shape.points[minIndex]);
+                  }
+
                   console.log(
                     `Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`
                   );
@@ -180,6 +200,18 @@ export const ImageAnnotation = (props: Props) => {
               />
             )}
           </DataMap>
+          <Conditional condition={Boolean(selectedPoint)}>
+            {() => (
+              <Circle
+                x={selectedPoint.x}
+                y={selectedPoint.y}
+                radius={4}
+                fill="red"
+                stroke="black"
+                strokeWidth={4}
+              />
+            )}
+          </Conditional>
         </Layer>
       </Stage>
     </Stack>
