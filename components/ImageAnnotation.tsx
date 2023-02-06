@@ -248,7 +248,7 @@ export const ImageAnnotation = (props: Props) => {
                     calculateDistanceBetweenPoints(currentPoint, shape.points[3]),
                   ];
 
-                  const pointNameMapping = {
+                  const pointNameMapping: any = {
                     0: 'Top Left',
                     1: 'Top Right',
                     2: 'Bottom Right',
