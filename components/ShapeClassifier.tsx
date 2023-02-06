@@ -39,7 +39,14 @@ export const ShapeClassifier = (props: ShapeClassifierProps) => {
             kind: 'LineAddVertex',
           }));
 
-        [...verteicesDistances, ...edgesDistances].sort((a, b) => a.distance - b.distance);
+        const sortedDistances = [...verteicesDistances, ...edgesDistances].sort((a, b) => a.distance - b.distance);
+
+        console.log(sortedDistances);
+
+        if (sortedDistances.length > 0) {
+          sortedDistances[0].kind === 'LineAddVertex' && console.log('Create new vertex');
+          sortedDistances[0].kind === 'Vertex' && console.log('Drag vertex');
+        }
       }}
       onMouseEnter={() => {
         // setMouseInsideShape(true);
