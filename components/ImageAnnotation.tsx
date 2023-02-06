@@ -154,15 +154,10 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       );
 
       const lines = shapes.flatMap((shape) => getShapeLines(shape));
-      const edgeMidPointsDistances = lines
-        .map((line) => ({
-          x: (line[0].x + line[1].x) / 2,
-          y: (line[0].y + line[1].y) / 2,
-        }))
-        .map((lineAddVertex) => ({
-          distance: calculateDistanceBetweenTwoPoints(currentPoint, lineAddVertex),
-          kind: DistanceKind.CreateVertex,
-        }));
+      const edgeMidPointsDistances = lines.map((line) => ({
+        distance: calculateDistanceBetweenTwoPoints(currentPoint, getLineMidPoint(line)),
+        kind: DistanceKind.CreateVertex,
+      }));
 
       const sortedDistances = [...verticesDistances, ...edgeMidPointsDistances].sort((a, b) => a.distance - b.distance);
 
