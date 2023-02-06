@@ -15,7 +15,6 @@ import {
   CardMedia,
   CardContent,
 } from '@mui/material';
-import { Image } from 'mui-image';
 import { ImageAnnotation } from '../components/ImageAnnotation';
 
 export default function Root() {
@@ -25,11 +24,7 @@ export default function Root() {
       sx={{ m: 1, overflow: 'hidden', maxHeight: 'calc(100vh - 80px)' }}
     >
       <Stack direction="row">
-        <Image
-          imageSrc="https://picsum.photos/id/674/2000"
-          classes={['quantity', 'unit-price', 'net-amount']}
-        />
-        <ImageAnnotation />
+        <ImageAnnotation imageSrc="https://picsum.photos/id/674/400" />
         <Divider orientation="vertical" flexItem />
         {/* <ImageAnnotation /> */}
       </Stack>
