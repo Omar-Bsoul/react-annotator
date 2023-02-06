@@ -17,6 +17,7 @@ import { calculateDistanceBetweenTwoPoints } from './helpers/calculate-distance-
 import { calculateDistanceBetweenPointAndLine } from './helpers/calculate-distance-between-point-and-line';
 import { getShapeLines } from './helpers/get-shape-lines';
 import { calculateSquareArea } from './helpers/calculate-square-area';
+import { getLineMidPoint } from './helpers/get-line-mid-point';
 import { KonvaEventObject } from 'konva/lib/Node';
 
 interface ImageAnnotationProps {
@@ -149,16 +150,21 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
           sortedDistances[0].kind === DistanceKind.CreateVertex &&
           sortedDistances[0].distance < configuration.minimumCreateVertexDistance
         ) {
-          console.log('Create new vertex');
-          const [minLineIndex, distance, line] = getClosestLine(currentPoint);
-          if (minLineIndex >= 0) {
-            const shapeIndex = getShapeByPoint(shapes, line);
-            const shape = { ...shapes[shapeIndex] };
+          const [index, distance, line] = getClosestLine(currentPoint);
+          const shapeIndex = getShapeByPoint(shapes, line[0]);
+          const lineStartIndex = shapes[shapeIndex].points.indexOf(line[0]);
 
-            const lineStartIndex = shape.points.indexOf(line[0]);
+          const points = shapes[shapeIndex].points.map((point) => ({ x: point.x, y: point.y }));
 
-            shape.points = [...shape.points].map((point) => ({ x: point.x, y: point.y }));
-          }
+          points.splice(lineStartIndex + 1, 0, getLineMidPoint(line));
+
+          shapes[shapeIndex] = {
+            ...shapes[shapeIndex],
+            points,
+          };
+
+          setShapes(shapes);
+          handleLayerMouseMove(event);
         } else if (
           sortedDistances[0].kind === DistanceKind.DisplaceVertex &&
           sortedDistances[0].distance < configuration.minimumDisplaceVertexDistance
