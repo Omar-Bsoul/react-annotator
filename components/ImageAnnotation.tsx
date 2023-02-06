@@ -139,7 +139,7 @@ export const ImageAnnotation = (props: Props) => {
               <Line
                 key={i}
                 points={shape.points.flatMap((point) => [point.x, point.y])}
-                fill="#60224F44"
+                fill="#6022FF44"
                 stroke="black"
                 strokeWidth={2}
                 closed={true}
@@ -162,10 +162,19 @@ export const ImageAnnotation = (props: Props) => {
                     distanceCalc(currentPoint, shape.points[3]),
                   ];
 
+                  const pointNameMapping = {
+                    0: 'Top Left',
+                    1: 'Top Right',
+                    2: 'Bottom Right',
+                    3: 'Bottom Left',
+                  };
+
+                  const minIndex = distanceObj.indexOf(
+                    Math.min(...distanceObj)
+                  );
+
                   console.log(
-                    `Min point is ${distanceObj.indexOf(
-                      Math.min(...distanceObj)
-                    )}`
+                    `Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`
                   );
                 }}
               />
