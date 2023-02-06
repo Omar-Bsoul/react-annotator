@@ -1,50 +1,135 @@
 import * as React from 'react';
-import { Image, Layer, Rect, Group } from 'react-konva';
-import { Box } from '@mui/material';
+import {
+  Stage,
+  Image,
+  Layer,
+  Rect,
+  Group,
+  Star,
+  Text,
+  Line,
+} from 'react-konva';
+import useImage from 'use-image';
+import { Box, Stack } from '@mui/material';
 
+interface DataMapProps<T> {
+  data: T[];
+  children: any;
+}
+
+const DataMap = <T>(props: DataMapProps<T>) => {
+  React.Children.only(props.children);
+};
+
+/*
 interface Props {
   imageSrc: string;
   classes: string[];
 }
 
-export const ImageAnnotation = (props: Props) => {
-  const [shapes, setShapes] = React.useState<JSX.Element[]>([]);
+interface Point {
+  x: number;
+  y: number;
+}
 
-  const handleDraw = (className: string) => {
-    setShapes([
-      ...shapes,
-      <Rect
-        key={shapes.length}
-        x={20}
-        y={20}
-        width={50}
-        height={50}
-        fill={className}
-      />,
-    ]);
+interface Shape {
+  points: Point[];
+}
+
+const calculateSquarePoints = (start: Point, end: Point) => {
+  const x1 = start.x;
+  const y1 = start.y;
+  const x2 = end.x;
+  const y2 = end.y;
+
+  return [
+    { x: x1, y: y1 },
+    { x: x2, y: y1 },
+    { x: x2, y: y2 },
+    { x: x1, y: y2 },
+  ];
+};
+
+export const ImageAnnotation = (props: Props) => {
+  const [shapes, setShapes] = React.useState<Shape[]>([]);
+  const [activeShape, setActiveShape] = React.useState<number>(-1);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+  const [image] = useImage(props.imageSrc);
+
+  return (
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer
+        // onClick={handleOnLayerClick}
+        onMouseMove={(event) => {
+          if (isDrawing) {
+            const { x, y } = event.target.getStage().getPointerPosition();
+
+            setPoints(calculateSquarePoints(points[0], { x, y }));
+          }
+        }}
+        onMouseDown={(event) => {
+          const { x, y } = event.target.getStage().getPointerPosition();
+
+          if (isDrawing) {
+            setPoints(calculateSquarePoints(points[0], { x, y }));
+          } else {
+            setIsDrawing(true);
+
+            setPoints([{ x, y }]);
+          }
+        }}
+        onMouseUp={(event) => {
+          if (isDrawing) {
+            setIsDrawing(false);
+          }
+        }}
+      >
+        <Image image={image} />
+        <Line
+          points={points.flatMap((point) => [point.x, point.y])}
+          fill="#60224F44"
+          stroke="black"
+          strokeWidth={2}
+          closed={true}
+        />
+      </Layer>
+    </Stage>
+  );
+};
+*/
+/*
+type Color =
+  | string
+  | {
+      red: number;
+      green: number;
+      blue: number;
+      alpha: number;
+    };
+
+interface Classification {
+  name: string;
+  color: Color;
+}
+
+interface Props {
+  imageSrc: string;
+  classes: Classification[];
+}
+
+export const ImageAnnotation = (props: Props) => {
+  const [image] = useImage(props.imageSrc);
+
+  const handleOnLayerClick = (event) => {
+    console.log(JSON.stringify(event, undefined, 2));
   };
 
   return (
-    <Box>
-      <Image image={props.imageSrc} />
-      <Layer>
-        <Group>{shapes}</Group>
+    <Stage width={window.innerWidth} height={window.innerHeight}>
+      <Layer onClick={handleOnLayerClick}>
+        <Image image={image} />
       </Layer>
-      {props.classes?.map((className) => (
-        <button key={className} onClick={() => handleDraw(className)}>
-          Draw {className}
-        </button>
-      ))}
-    </Box>
+    </Stage>
   );
 };
-
-// <Image image={imageSrc} />
-// <Layer>
-//   <Group>{shapes}</Group>
-// </Layer>
-// {/* {classes?.map((className) => (
-//   <button key={className} onClick={() => handleDraw(className)}>
-//     Draw {className}
-//   </button>
-// ))} */}
+*/
