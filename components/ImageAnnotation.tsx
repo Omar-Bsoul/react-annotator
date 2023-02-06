@@ -50,7 +50,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
     }
   }, configuration.debounceDuration);
 
-  const getClosestLine = (currentPoint: Point) => {
+  const getClosestLine = (currentPoint: Point): [number, number, Point[]] => {
     const flatLines = shapes.flatMap((shape) => getShapeLines(shape));
     const lineDistances = flatLines.map((line) => calculateDistanceBetweenPointAndLine(currentPoint, line));
 
@@ -59,7 +59,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
     return [minLineIndex, lineDistances[minLineIndex], flatLines[minLineIndex]];
   };
 
-  const getClosestPoint = (currentPoint: Point) => {
+  const getClosestPoint = (currentPoint: Point): [number, number, Point] => {
     const flatPoints = shapes.flatMap((shape) => shape.points);
     const pointDistances = flatPoints.map((point) => calculateDistanceBetweenTwoPoints(currentPoint, point));
 
