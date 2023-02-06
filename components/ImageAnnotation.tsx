@@ -30,6 +30,8 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
   const [shapes, setShapes] = React.useState<Shape[]>([]);
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
+  const [isDisplacing, setIsDisplacing] = React.useState(false);
+  const [displacingPoint, setDisplacingPoint] = React.useState<Point>(undefined);
   const [enableDrawing, setEnableDrawing] = React.useState(true);
   const [selectedPoint, setSelectedPoint] = React.useState<Point>(undefined);
   const [selectedLine, setSelectedLine] = React.useState<Point[]>(undefined);
@@ -56,6 +58,15 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
     return [minLineIndex, lineDistances[minLineIndex], flatLines[minLineIndex]];
   };
 
+  const getClosestPoint = (currentPoint: Point) => {
+    const flatPoints = shapes.flatMap((shape) => shape.points);
+    const pointDistances = flatPoints.map((point) => calculateDistanceBetweenTwoPoints(currentPoint, point));
+
+    const minPointIndex = pointDistances.indexOf(Math.min(...pointDistances));
+
+    return [minPointIndex, pointDistances[minPointIndex], flatPoints[minPointIndex]];
+  };
+
   const handleLayerMouseMove = (event: KonvaEventObject<MouseEvent>) => {
     if (isDrawing) {
       const currentPoint: Point = event.target.getStage().getPointerPosition();
@@ -72,22 +83,16 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       currentShape.points = createSquarePoints(currentShape.points[0], currentPoint);
 
       setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
+    } else if (isDisplacing) {
     } else {
       const currentPoint: Point = event.target.getStage().getPointerPosition();
 
       // Handle point highlighting logic
-      const flatPoints = shapes.flatMap((shape) => shape.points);
-      const pointDistances = flatPoints.map((point) => calculateDistanceBetweenTwoPoints(currentPoint, point));
-
-      const minPointIndex = pointDistances.indexOf(Math.min(...pointDistances));
-      // let minPointShapeIndex: number;
-
+      const [minPointIndex, pointDistance, point] = getClosestPoint(currentPoint);
       if (minPointIndex >= 0) {
-        // minPointShapeIndex = getShapeByPoint(shapes, flatPoints[minPointIndex]);
-
-        if (pointDistances[minPointIndex] < configuration.minimumVertexHighlightDistance) {
-          setSelectedPoint(flatPoints[minPointIndex]);
-          if (enableDrawing) debouncePointMouseLogging(flatPoints[minPointIndex]);
+        if (pointDistance < configuration.minimumVertexHighlightDistance) {
+          setSelectedPoint(point);
+          if (enableDrawing) debouncePointMouseLogging(point);
         } else {
           setSelectedPoint(undefined);
           if (enableDrawing) clearDebouncePointMouseLogging();
@@ -95,9 +100,9 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       }
 
       // Handle line highlighting logic
-      const [minLineIndex, distance, line] = getClosestLine(currentPoint);
+      const [minLineIndex, lineDistance, line] = getClosestLine(currentPoint);
       if (minLineIndex >= 0) {
-        if (distance < configuration.minimumLineHighlightedDistance) {
+        if (lineDistance < configuration.minimumLineHighlightedDistance) {
           setSelectedLine(line);
           if (enableDrawing) debounceLineMouseLogging(line);
         } else {
@@ -169,7 +174,9 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
           sortedDistances[0].kind === DistanceKind.DisplaceVertex &&
           sortedDistances[0].distance < configuration.minimumDisplaceVertexDistance
         ) {
-          console.log('Drag vertex');
+          const [index, distance, point] = getClosestPoint(currentPoint);
+          setDisplacingPoint(point);
+          setIsDisplacing(true);
         }
       }
     }
