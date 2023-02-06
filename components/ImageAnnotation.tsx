@@ -112,6 +112,34 @@ export const ImageAnnotation = (props: Props) => {
               setShapes(shapes);
 
               setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
+            } else {
+              const currentPoint: Point = event.target
+                .getStage()
+                .getPointerPosition();
+
+              const distanceCalc = (a: Point, b: Point) => {
+                return Math.sqrt(
+                  Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)
+                );
+              };
+
+              const flatPoints = shapes.flatMap((shape) => shape.points);
+              const pointDistances = flatPoints.map((point) =>
+                distanceCalc(currentPoint, point)
+              );
+
+              const minIndex = pointDistances.indexOf(
+                Math.min(...pointDistances)
+              );
+
+              if (minIndex >= 0) {
+                if (pointDistances[minIndex] < 25) {
+                  setSelectedPoint(flatPoints[minIndex]);
+                  console.log(`Shape id - ${Math.floor(minIndex / 4)}`);
+                } else {
+                  setSelectedPoint(undefined);
+                }
+              }
             }
           }}
           onMouseDown={(event) => {
@@ -159,7 +187,7 @@ export const ImageAnnotation = (props: Props) => {
                 strokeWidth={2}
                 closed={true}
                 id={i.toString()}
-                
+                onMouseMove={(event) => {}}
                 onMouseDown={(event) => {
                   const currentPoint: Point = event.target
                     .getStage()
@@ -189,7 +217,7 @@ export const ImageAnnotation = (props: Props) => {
                     Math.min(...distanceObj)
                   );
 
-                  if (distanceObj[minIndex] < 25) {
+                  if (distanceObj[minIndex] < 8) {
                     setSelectedPoint(shape.points[minIndex]);
                   }
 
@@ -202,14 +230,24 @@ export const ImageAnnotation = (props: Props) => {
           </DataMap>
           <Conditional condition={Boolean(selectedPoint)}>
             {() => (
-              <Circle
-                x={selectedPoint.x}
-                y={selectedPoint.y}
-                radius={4}
-                fill="red"
-                stroke="black"
-                strokeWidth={4}
-              />
+              <React.Fragment>
+                <Circle
+                  x={selectedPoint.x}
+                  y={selectedPoint.y}
+                  radius={4}
+                  stroke="#C1FF2277"
+                  strokeWidth={8}
+                  fill="black"
+                />
+                {/* <Circle
+                  x={selectedPoint.x}
+                  y={selectedPoint.y}
+                  radius={8}
+                  fill="#60FF2244"
+                  stroke="black"
+                  strokeWidth={0}
+                /> */}
+              </React.Fragment>
             )}
           </Conditional>
         </Layer>
