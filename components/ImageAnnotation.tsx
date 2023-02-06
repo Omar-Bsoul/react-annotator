@@ -281,7 +281,7 @@ export const ImageAnnotation = (props: Props) => {
                   x={selectedLine.map((point) => point.x).reduce((previousX, currentX) => previousX + currentX) / 2}
                   y={selectedLine.map((point) => point.y).reduce((previousY, currentY) => previousY + currentY) / 2}
                   radius={5}
-                  fill="black"
+                  fill="#40c220"
                   stroke="#FFFFFF"
                   strokeWidth={5}
                 />
