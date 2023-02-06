@@ -63,14 +63,34 @@ const calculateDistanceBetweenPoints = (start: Point, end: Point): number => {
 };
 
 const calculateDistanceBetweenPointAndLine = (point: Point, line: Point[]): number => {
-  const A = point.y - line[0].y;
-  const B = line[0].x - point.x;
-  const C = line[0].x * point.y - line[0].y * point.x;
+  let A = point.x - line[0].x;
+  let B = point.y - line[0].y;
+  let C = line[1].x - line[0].x;
+  let D = line[1].y - line[0].y;
 
-  const denominator = Math.sqrt(A * A + B * B);
-  const numerator = Math.abs(A * line[1].x + B * line[1].y + C);
+  let dot = A * C + B * D;
+  let len_sq = C * C + D * D;
+  let param = -1;
+  if (len_sq != 0)
+    //in case of 0 length line
+    param = dot / len_sq;
 
-  return numerator / denominator;
+  let xx, yy;
+
+  if (param < 0) {
+    xx = line[0].x;
+    yy = line[0].y;
+  } else if (param > 1) {
+    xx = line[1].x;
+    yy = line[1].y;
+  } else {
+    xx = line[0].x + param * C;
+    yy = line[0].y + param * D;
+  }
+
+  let dx = point.x - xx;
+  let dy = point.y - yy;
+  return Math.sqrt(dx * dx + dy * dy);
 };
 
 const useDebounce = (callback: (...args: any) => void, delay: number) => {
@@ -112,7 +132,11 @@ export const ImageAnnotation = (props: Props) => {
     console.log(`Shape id - ${Math.floor(minIndex / 4)}`);
   }, 500);
   const [debounceLineMouseLogging, clearDebounceLineMouseLogging] = useDebounce((x1Index: number, x2Index: number) => {
-    console.log(`Shape id - ${Math.floor(x1Index / 4)} - ${Math.floor(x2Index / 4)}`);
+    console.log(
+      `Line - ${selectedLine[0].x.toFixed(4)},${selectedLine[0].y.toFixed(4)} - ${selectedLine[1].x.toFixed(
+        4,
+      )},${selectedLine[1].y.toFixed(4)}`,
+    );
   }, 500);
 
   return (
@@ -165,9 +189,7 @@ export const ImageAnnotation = (props: Props) => {
                 if (secondMinIndex >= 0 && minIndex !== secondMinIndex) {
                   const line = [flatPoints[minIndex], flatPoints[secondMinIndex]];
 
-                  console.log(calculateDistanceBetweenPointAndLine(currentPoint, line));
-
-                  if (calculateDistanceBetweenPointAndLine(currentPoint, line) < 25) {
+                  if (calculateDistanceBetweenPointAndLine(currentPoint, line) < 15) {
                     setSelectedLine(line);
                     debounceLineMouseLogging(minIndex, secondMinIndex);
                   } else {
@@ -250,6 +272,22 @@ export const ImageAnnotation = (props: Props) => {
               />
             )}
           </DataMap>
+          <Conditional condition={Boolean(selectedLine)}>
+            {() => (
+              <React.Fragment>
+                <Line points={selectedLine.flatMap((point) => [point.x, point.y])} stroke="#FFFFFF77" strokeWidth={6} />
+                <Line points={selectedLine.flatMap((point) => [point.x, point.y])} stroke="black" strokeWidth={2} />
+                <Circle
+                  x={selectedLine.map((point) => point.x).reduce((previousX, currentX) => previousX + currentX) / 2}
+                  y={selectedLine.map((point) => point.y).reduce((previousY, currentY) => previousY + currentY) / 2}
+                  radius={5}
+                  fill="black"
+                  stroke="#FFFFFF"
+                  strokeWidth={5}
+                />
+              </React.Fragment>
+            )}
+          </Conditional>
           <Conditional condition={Boolean(selectedPoint)}>
             {() => (
               <React.Fragment>
