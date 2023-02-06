@@ -62,15 +62,13 @@ export const ImageAnnotation = (props: Props) => {
 
   return (
     <Stack>
-      <Stack direction="row">
-        <Paper>
-          <Button onClick={() => setEnableDrawing(!enableDrawing)}>
-            Toggle Drawing
-          </Button>
-          <Typography>
-            {enableDrawaing ? 'Drawing Enabled' : 'Drawing Disabled'}
-          </Typography>
-        </Paper>
+      <Stack direction="row" alignItems="center">
+        <Button onClick={() => setEnableDrawing(!enableDrawing)}>
+          Toggle Drawing
+        </Button>
+        <Typography>
+          {enableDrawing ? 'Drawing Enabled' : 'Drawing Disabled'}
+        </Typography>
       </Stack>
       <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer
@@ -102,12 +100,12 @@ export const ImageAnnotation = (props: Props) => {
               .getStage()
               .getPointerPosition();
 
-            console.log(event.target.getType());
-
             if (enableDrawing) {
               setActiveShape(shapes.length);
               setIsDrawing(true);
               setShapes([...shapes, { points: [currentPoint] }]);
+            } else {
+              // console.log(event.target.getAncestors()[0].findAncestor());
             }
           }}
           onMouseUp={(event) => {
@@ -136,11 +134,21 @@ export const ImageAnnotation = (props: Props) => {
               <Line
                 key={i}
                 points={shape.points.flatMap((point) => [point.x, point.y])}
-                poits={[23, 20, 23, 160, 70, 93, 150, 109, 290, 139, 270, 93]}
                 fill="#60224F44"
                 stroke="black"
                 strokeWidth={2}
                 closed={true}
+                id={i.toString()}
+                onMouseDown={(event) => {
+                  const currentPoint: Point = event.target
+                    .getStage()
+                    .getPointerPosition();
+
+                  console.log({
+                    x: currentPoint.x - shape.points[0].x,
+                    y: currentPoint.y - shape.points[0].y,
+                  });
+                }}
               />
             )}
           </DataMap>
