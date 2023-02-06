@@ -2,147 +2,17 @@ import * as React from 'react';
 import { Stage, Image, Layer, Rect, Group, Star, Text, Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 import { Box, Stack, Paper, Button, Typography } from '@mui/material';
+import { useDebounce } from '../hooks/debounce';
+import { DataLoop } from './DataLoop';
+import { Conditional } from './Conditional';
+import { ShapeClassifier } from './ShapeClassifier';
 
-interface DataMapProps<T> {
-  data: T[];
-  children: (item: T, i: number) => React.ReactElement;
-}
-
-const DataMap = function <T>(props: DataMapProps<T>) {
-  return <React.Fragment>{props.data.map(props.children)}</React.Fragment>;
-};
-
-interface ConditionalProps {
-  condition: boolean;
-  children: () => React.ReactElement;
-}
-
-const Conditional = (props: ConditionalProps) => {
-  if (props.condition) {
-    return props.children();
-  } else {
-    return <React.Fragment />;
-  }
-};
-
-interface Props {
+interface ImageAnnotationProps {
   imageSrc: string;
-  classes: string[];
+  classes: Classification[];
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Shape {
-  points: Point[];
-}
-
-const calculateSquarePoints = (start: Point, end: Point, sort: boolean = false) => {
-  const x1 = sort ? Math.min(start.x, end.x) : start.x;
-  const y1 = sort ? Math.min(start.y, end.y) : start.y;
-  const x2 = sort ? Math.max(start.x, end.x) : end.x;
-  const y2 = sort ? Math.max(start.y, end.y) : end.y;
-
-  const result = [
-    { x: x1, y: y1 },
-    { x: x2, y: y1 },
-    { x: x2, y: y2 },
-    { x: x1, y: y2 },
-  ];
-
-  return result;
-};
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-const calculateDistanceBetweenPoints = (start: Point, end: Point): number => {
-  return Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
-};
-
-const calculateDistanceBetweenPointAndLine = (point: Point, line: Point[]): number => {
-  let A = point.x - line[0].x;
-  let B = point.y - line[0].y;
-  let C = line[1].x - line[0].x;
-  let D = line[1].y - line[0].y;
-
-  let dot = A * C + B * D;
-  let len_sq = C * C + D * D;
-  let param = -1;
-  if (len_sq != 0)
-    //in case of 0 length line
-    param = dot / len_sq;
-
-  let xx, yy;
-
-  if (param < 0) {
-    xx = line[0].x;
-    yy = line[0].y;
-  } else if (param > 1) {
-    xx = line[1].x;
-    yy = line[1].y;
-  } else {
-    xx = line[0].x + param * C;
-    yy = line[0].y + param * D;
-  }
-
-  let dx = point.x - xx;
-  let dy = point.y - yy;
-  return Math.sqrt(dx * dx + dy * dy);
-};
-
-const useDebounce = (callback: (...args: any) => void, delay: number) => {
-  const [debouncing, setDebouncing] = React.useState(false);
-  const [callbackArgs, setCallbackArgs] = React.useState<any>(undefined);
-
-  React.useEffect(() => {
-    if (debouncing) {
-      const id = setTimeout(() => {
-        setDebouncing(false);
-        callback(...callbackArgs);
-      }, delay);
-      return () => clearTimeout(id);
-    }
-  }, [debouncing, callback, delay]);
-
-  const debounce = (...args: any) => {
-    setDebouncing(true);
-    setCallbackArgs(args);
-  };
-
-  const clearDebounce = () => {
-    setDebouncing(false);
-  };
-
-  return [debounce, clearDebounce];
-};
-
-const getShapeByPoint = (shapes: Shape[], point: Point) => {
-  for (let i = 0; i < shapes.length; i++) {
-    for (let j = 0; j < shapes[i].points.length; j++) {
-      if (shapes[i].points[j].x === point.x && shapes[i].points[j].y === point.y) {
-        return i;
-      }
-    }
-  }
-};
-
-const getShapeLines = (shape: Shape) => {
-  const lines: Point[][] = [];
-
-  for (let i = 0; i < shape.points.length - 1; i++) {
-    lines.push([shape.points[i], shape.points[i + 1]]);
-  }
-  lines.push([shape.points[shape.points.length - 1], shape.points[0]]);
-
-  return lines;
-};
-
-export const ImageAnnotation = (props: Props) => {
+export const ImageAnnotation = (props: ImageAnnotationProps) => {
   const [shapes, setShapes] = React.useState<Shape[]>([]);
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
@@ -250,46 +120,7 @@ export const ImageAnnotation = (props: Props) => {
           }}
         >
           <Image image={image} />
-          <DataMap data={shapes}>
-            {(shape, i) => (
-              <Line
-                key={i}
-                points={shape.points.flatMap((point) => [point.x, point.y])}
-                fill="#6022FF44"
-                stroke="black"
-                strokeWidth={2}
-                closed={true}
-                id={i.toString()}
-                onMouseMove={(event) => {}}
-                onMouseDown={(event) => {
-                  // const currentPoint: Point = event.target.getStage().getPointerPosition();
-                  // const distanceObj = [
-                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[0]),
-                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[1]),
-                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[2]),
-                  //   calculateDistanceBetweenPoints(currentPoint, shape.points[3]),
-                  // ];
-                  // const pointNameMapping: any = {
-                  //   0: 'Top Left',
-                  //   1: 'Top Right',
-                  //   2: 'Bottom Right',
-                  //   3: 'Bottom Left',
-                  // };
-                  // const minIndex = distanceObj.indexOf(Math.min(...distanceObj));
-                  // if (distanceObj[minIndex] < 8) {
-                  //   setSelectedPoint(shape.points[minIndex]);
-                  // }
-                  // console.log(`Closest point is ${minIndex} - ${pointNameMapping[minIndex]}`);
-                }}
-                onMouseEnter={() => {
-                  setMouseInsideShape(true);
-                }}
-                onMouseLeave={() => {
-                  setMouseInsideShape(false);
-                }}
-              />
-            )}
-          </DataMap>
+          <DataLoop data={shapes}>{(shape, i) => <ShapeClassifier key={i} shape={shape} />}</DataLoop>
           <Conditional condition={Boolean(selectedLine)}>
             {() => (
               <React.Fragment>
@@ -319,40 +150,3 @@ export const ImageAnnotation = (props: Props) => {
     </Stack>
   );
 };
-
-/*
-type Color =
-  | string
-  | {
-      red: number;
-      green: number;
-      blue: number;
-      alpha: number;
-    };
-
-interface Classification {
-  name: string;
-  color: Color;
-}
-
-interface Props {
-  imageSrc: string;
-  classes: Classification[];
-}
-
-export const ImageAnnotation = (props: Props) => {
-  const [image] = useImage(props.imageSrc);
-
-  const handleOnLayerClick = (event) => {
-    console.log(JSON.stringify(event, undefined, 2));
-  };
-
-  return (
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer onClick={handleOnLayerClick}>
-        <Image image={image} />
-      </Layer>
-    </Stage>
-  );
-};
-*/
