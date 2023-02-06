@@ -31,7 +31,6 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
   const [activeShape, setActiveShape] = React.useState<number>(-1);
   const [isDrawing, setIsDrawing] = React.useState(false);
   const [isDisplacing, setIsDisplacing] = React.useState(false);
-  const [displacingPoint, setDisplacingPoint] = React.useState<Point>(undefined);
   const [displacingPointIndex, setDisplacingPointIndex] = React.useState<number>(undefined);
   const [displacingPointShapeIndex, setDisplacingPointShapeIndex] = React.useState<number>(undefined);
   const [enableDrawing, setEnableDrawing] = React.useState(true);
@@ -39,6 +38,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
   const [selectedLine, setSelectedLine] = React.useState<Point[]>(undefined);
   const [mouseInsideShape, setMouseInsideShape] = React.useState(false);
   const [image] = useImage(props.imageSrc);
+  const [errorSnackbarOpen, setErrorSnackbarOpen] = React.useState(false);
   const [debouncePointMouseLogging, clearDebouncePointMouseLogging] = useDebounce((point: Point) => {
     if (point) {
       console.log(`Shape id - Point - ${getShapeByPoint(shapes, point)}`);
@@ -49,7 +49,6 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       console.log(`Shape id - Line - ${getShapeByPoint(shapes, line[0])}`);
     }
   }, configuration.debounceDuration);
-  const [errorSnackbarOpen, setErrorSnackbarOpen] = React.useState(false);
 
   const getClosestLine = (currentPoint: Point) => {
     const flatLines = shapes.flatMap((shape) => getShapeLines(shape));
@@ -86,17 +85,21 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
 
       setShapes([...shapes.slice(0, shapes.length - 1), currentShape]);
     } else if (isDisplacing) {
-      console.log(shapes[displacingPointShapeIndex].points[displacingPointIndex]);
-      const points = shapes[displacingPointShapeIndex].points.map((point) => ({ x: point.x, y: point.y }));
-
-      points[displacingPointIndex] = currentPoint;
-
-      shapes[displacingPointShapeIndex] = {
-        ...shapes[displacingPointShapeIndex],
-        points,
+      const currentShape: Shape = {
+        id: shapes[displacingPointShapeIndex].id,
+        points: shapes[displacingPointShapeIndex].points.map((point) => ({
+          x: point.x,
+          y: point.y,
+        })),
+        classification: shapes[displacingPointShapeIndex].classification,
       };
 
-      setShapes(shapes);
+      currentShape.points[displacingPointIndex] = currentPoint;
+
+      shapes[displacingPointShapeIndex] = currentShape;
+
+      setShapes([...shapes]);
+      setSelectedPoint(currentPoint);
     } else {
       const currentPoint: Point = event.target.getStage().getPointerPosition();
 
@@ -192,10 +195,10 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
           const shapeIndex = getShapeByPoint(shapes, point);
           const pointIndex = shapes[shapeIndex].points.indexOf(point);
 
-          setDisplacingPoint(point);
           setIsDisplacing(true);
           setDisplacingPointShapeIndex(shapeIndex);
           setDisplacingPointIndex(pointIndex);
+          setSelectedLine(undefined);
         }
       }
     }
@@ -222,7 +225,6 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       setIsDrawing(false);
       setActiveShape(-1);
     } else if (isDisplacing) {
-      setDisplacingPoint(undefined);
       setIsDisplacing(false);
       setDisplacingPointShapeIndex(undefined);
       setDisplacingPointIndex(undefined);
