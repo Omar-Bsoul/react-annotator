@@ -1,3 +1,5 @@
+import { Point } from '../types/point';
+
 export const createSquarePoints = (start: Point, end: Point, sort: boolean = false) => {
   const x1 = sort ? Math.min(start.x, end.x) : start.x;
   const y1 = sort ? Math.min(start.y, end.y) : start.y;

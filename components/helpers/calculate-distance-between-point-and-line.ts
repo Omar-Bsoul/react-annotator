@@ -1,7 +1,7 @@
 import { Point } from '../types/point';
 import { Line } from '../types/line';
 
-export const calculateDistanceBetweenPointAndLine = (point: Point, line: Line): number => {
+export const calculateDistanceBetweenPointAndLine = (point: Point, line: Line) => {
   let A = point.x - line[0].x;
   let B = point.y - line[0].y;
   let C = line[1].x - line[0].x;
@@ -29,5 +29,6 @@ export const calculateDistanceBetweenPointAndLine = (point: Point, line: Line): 
 
   let dx = point.x - xx;
   let dy = point.y - yy;
+
   return Math.sqrt(dx * dx + dy * dy);
 };
