@@ -1,26 +1,31 @@
 export const useConfiguration = () => {
-  const scaleFactor = 1;
+  const farHighlightElemenetsScaleFactor = 0.5;
+  const closeHighlightElemenetsScaleFactor = 1; // not implemented
+  const performActionScaleFactor = 0.5;
 
   return {
     debounceDuration: 500,
-    minimumVertexHighlightDistance: 25 * scaleFactor,
-    minimumLineHighlightedDistance: 15 * scaleFactor,
+    minimumVertexHighlightDistance: 25 * farHighlightElemenetsScaleFactor,
+    minimumLineHighlightedDistance: 15 * farHighlightElemenetsScaleFactor,
     minimumShapeArea: 192,
     highlightedLineBackgroundColor: '#FFFFFF77',
-    highlightedLineBackgroundWidth: 6 * scaleFactor,
+    highlightedLineBackgroundWidth: 6 * farHighlightElemenetsScaleFactor,
     highlightedLineForegroundColor: '#000000',
-    highlightedLineForegroundWidth: 2 * scaleFactor,
+    highlightedLineForegroundWidth: 2 * farHighlightElemenetsScaleFactor,
     highlightedLineInsertVertexCircleBackgroundColor: '#FFFFFF',
-    highlightedLineInsertVertexCircleBorderWidth: 5 * scaleFactor,
+    highlightedLineInsertVertexCircleBorderWidth: 5 * farHighlightElemenetsScaleFactor,
     highlightedLineInsertVertexCircleForegroundColor: '#40c220',
-    highlightedLineInsertVertexCircleRadius: 5 * scaleFactor,
+    highlightedLineInsertVertexCircleRadius: 5 * farHighlightElemenetsScaleFactor,
     highlightedPointBackgroundColor: '#FFFFFF77',
-    highlightedPointBackgroundRadius: 3 * scaleFactor,
-    highlightedPointBackgroundWidth: 6 * scaleFactor,
+    highlightedPointBackgroundRadius: 3 * farHighlightElemenetsScaleFactor,
+    highlightedPointBackgroundWidth: 6 * farHighlightElemenetsScaleFactor,
     highlightedPointForegroundColor: '#000000',
-    highlightedPointForegroundRadius: 3 * scaleFactor,
+    highlightedPointForegroundRadius: 3 * farHighlightElemenetsScaleFactor,
     snackbarErrorDuration: 2000,
-    minimumCreateVertexDistance: 10 * scaleFactor,
-    minimumDisplaceVertexDistance: 5 * scaleFactor,
+    minimumCreateVertexDistance: 10 * performActionScaleFactor,
+    minimumDisplaceVertexDistance: 5 * performActionScaleFactor,
+    classifierColor: '#6022FF44',
+    classifierBorderColor: '#000000',
+    classifierBorderWidth: 1,
   };
 };
