@@ -108,10 +108,10 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       if (minPointIndex >= 0) {
         if (pointDistance < configuration.minimumVertexHighlightDistance) {
           setSelectedPoint(point);
-          if (enableDrawing) debouncePointMouseLogging(point);
+          setEnableDrawing(false);
         } else {
           setSelectedPoint(undefined);
-          if (enableDrawing) clearDebouncePointMouseLogging();
+          setEnableDrawing(true);
         }
       }
 
@@ -120,10 +120,17 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
       if (minLineIndex >= 0) {
         if (lineDistance < configuration.minimumLineHighlightedDistance) {
           setSelectedLine(line);
-          if (enableDrawing) debounceLineMouseLogging(line);
         } else {
           setSelectedLine(undefined);
-          if (enableDrawing) clearDebounceLineMouseLogging();
+        }
+
+        const lineMidPointDistance = calculateDistanceBetweenTwoPoints(currentPoint, getLineMidPoint(line));
+
+        if (lineMidPointDistance < configuration.minimumVertexHighlightDistance) {
+          setEnableDrawing(false);
+        } else if (pointDistance >= configuration.minimumVertexHighlightDistance) {
+          // This is to avoid enabling drawing while the user is close to vertex
+          setEnableDrawing(true);
         }
       }
     }
@@ -236,7 +243,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
         <Layer onMouseMove={handleLayerMouseMove} onMouseDown={handleLayerMouseDown} onMouseUp={handleLayerMouseUp}>
           <Image image={image} />
           <DataLoop data={shapes}>{(shape, i) => <ShapeClassifier key={i} shape={shape} />}</DataLoop>
-          <Conditional condition={Boolean(selectedLine)}>
+          <Conditional condition={Boolean(selectedLine) && !enableDrawing}>
             {() => (
               <React.Fragment>
                 <Line
@@ -260,7 +267,7 @@ export const ImageAnnotation = (props: ImageAnnotationProps) => {
               </React.Fragment>
             )}
           </Conditional>
-          <Conditional condition={Boolean(selectedPoint)}>
+          <Conditional condition={Boolean(selectedPoint) && !enableDrawing}>
             {() => (
               <React.Fragment>
                 <Circle
